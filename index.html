@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Quantum Road</title>
+
+<style>
+
+body{
+font-family:-apple-system,BlinkMacSystemFont;
+margin:0;
+background:#f4f6ff;
+font-size:17px;
+padding-bottom:70px;
+}
+
+header{
+background:#2d3dbf;
+color:white;
+text-align:center;
+padding:15px;
+font-size:20px;
+}
+
+.date{
+text-align:center;
+margin:8px;
+color:#555;
+}
+
+.page{
+display:none;
+padding:18px;
+}
+
+.page.active{
+display:block;
+}
+
+.card{
+background:white;
+padding:16px;
+border-radius:14px;
+margin-bottom:16px;
+box-shadow:0 3px 8px rgba(0,0,0,0.08);
+}
+
+h3{
+margin-top:0;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#2d3dbf;
+color:white;
+font-size:16px;
+margin-top:8px;
+}
+
+select,input{
+padding:10px;
+font-size:16px;
+width:100%;
+}
+
+.bottomnav{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+display:flex;
+background:white;
+border-top:1px solid #ddd;
+}
+
+.bottomnav button{
+flex:1;
+background:white;
+color:#444;
+font-size:14px;
+padding:12px;
+}
+
+.bottomnav button.active{
+color:#2d3dbf;
+font-weight:bold;
+}
+
+.timer{
+font-size:22px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<header>Quantum Road</header>
+
+<div class="date" id="today"></div>
+
+
+<div id="home" class="page active">
+
+<div class="card">
+
+<h3>Today</h3>
+
+<label><input type="checkbox"> 線形代数</label><br><br>
+<label><input type="checkbox"> 微分方程式</label><br><br>
+<label><input type="checkbox"> 電磁気</label><br><br>
+<label><input type="checkbox"> 量子基礎</label>
+
+</div>
+
+<div class="card">
+
+<h3>AI 今日の学習提案</h3>
+
+<p id="aitoday"></p>
+
+<button onclick="generatePlan()">AIに提案してもらう</button>
+
+</div>
+
+</div>
+
+
+<div id="study" class="page">
+
+<div class="card">
+
+<h3>Study Timer</h3>
+
+<select id="subject">
+<option>Math</option>
+<option>Physics</option>
+<option>Quantum</option>
+</select>
+
+<div class="timer" id="timer">00:00</div>
+
+<button onclick="startTimer()">Start</button>
+<button onclick="stopTimer()">Stop</button>
+
+</div>
+
+
+<div class="card">
+
+<h3>Study Log</h3>
+
+<ul id="log"></ul>
+
+</div>
+
+</div>
+
+
+<div id="ai" class="page">
+
+<div class="card">
+
+<h3>AI 問題生成</h3>
+
+<p id="question"></p>
+
+<button onclick="nextProblem()">次の問題</button>
+
+<button onclick="showAnswer()">回答を見る</button>
+
+<p id="answer"></p>
+
+</div>
+
+<div class="card">
+
+<h3>AI 学習相談</h3>
+
+<input id="aiinput" placeholder="例：院試の勉強計画を立てたい">
+
+<button onclick="askAI()">AIに聞く</button>
+
+<p id="airesponse"></p>
+
+</div>
+
+</div>
+
+
+<div id="stats" class="page">
+
+<div class="card">
+
+<h3>Stats</h3>
+
+<p id="mathstat">Math: 0 min</p>
+<p id="physstat">Physics: 0 min</p>
+<p id="quantstat">Quantum: 0 min</p>
+
+</div>
+
+</div>
+
+
+
+<div class="bottomnav">
+
+<button onclick="showPage('home')" id="tab-home" class="active">Home</button>
+
+<button onclick="showPage('study')" id="tab-study">Study</button>
+
+<button onclick="showPage('ai')" id="tab-ai">AI</button>
+
+<button onclick="showPage('stats')" id="tab-stats">Stats</button>
+
+</div>
+
+
+
+<script>
+
+
+let today=new Date()
+
+document.getElementById("today").innerText=
+"Today: "+today.getFullYear()+"-"+(today.getMonth()+1)+"-"+today.getDate()
+
+
+
+function showPage(page){
+
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"))
+document.getElementById(page).classList.add("active")
+
+document.querySelectorAll(".bottomnav button").forEach(b=>b.classList.remove("active"))
+document.getElementById("tab-"+page).classList.add("active")
+
+}
+
+
+
+let timerInterval
+let seconds=0
+let subject
+
+
+function startTimer(){
+
+subject=document.getElementById("subject").value
+
+timerInterval=setInterval(()=>{
+
+seconds++
+
+let m=Math.floor(seconds/60)
+let s=seconds%60
+
+document.getElementById("timer").innerText=
+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")
+
+},1000)
+
+}
+
+
+
+function stopTimer(){
+
+clearInterval(timerInterval)
+
+let minutes=Math.round(seconds/60)
+
+let log=document.getElementById("log")
+let item=document.createElement("li")
+
+item.textContent=subject+" "+minutes+" min"
+
+log.appendChild(item)
+
+seconds=0
+
+document.getElementById("timer").innerText="00:00"
+
+}
+
+
+
+let problems=[
+{
+q:"固有値とは何か説明せよ",
+a:"Ax=λxを満たすスカラーλを固有値という"
+},
+{
+q:"マクスウェル方程式の一つを答えよ",
+a:"∇×E = −∂B/∂t"
+},
+{
+q:"エルミート行列とは何か",
+a:"自分の随伴と等しい行列"
+}
+]
+
+
+function nextProblem(){
+
+let p=problems[Math.floor(Math.random()*problems.length)]
+
+document.getElementById("question").innerText=p.q
+document.getElementById("answer").innerText=p.a
+
+}
+
+
+
+function showAnswer(){
+
+document.getElementById("answer").style.display="block"
+
+}
+
+
+
+function generatePlan(){
+
+let d=document.getElementById("today").innerText
+
+document.getElementById("aitoday").innerText=
+
+d+" を確認しました。今日は量子基礎30分、線形代数30分、電磁気30分の学習を提案します。"
+
+}
+
+
+
+function askAI(){
+
+let q=document.getElementById("aiinput").value
+
+document.getElementById("airesponse").innerText=
+"AI機能（本実装はAPI接続で可能）: "+q+"についてアドバイスを生成予定"
+
+}
+
+
+nextProblem()
+
+</script>
+
+</body>
+</html>
